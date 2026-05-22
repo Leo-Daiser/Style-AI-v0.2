@@ -15,6 +15,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
+import com.example.styleai.core.localization.AppLocalization
+import com.example.styleai.domain.model.AppLanguage
 
 /**
  * Animated entry splash screen.
