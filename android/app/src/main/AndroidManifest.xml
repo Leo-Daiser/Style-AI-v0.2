@@ -1,14 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-<!-- 
-         SECURITY POLICY: For maximum user privacy under pure offline sandbox processing, 
-         the INTERNET permission is intentionally disabled to ensure no image bytes or 
-         style telemetry can leave the local execution context. 
-         
-         TODO: Reintroduce 'android.permission.INTERNET' only when transitioning StyleAI 
-         to client-server modes with strict encryption protocols (HTTPS/TLS).
-    -->
+    <!-- SECURITY POLICY: Android MVP is local-only and intentionally has no network permission. -->
 
     <application
         android:allowBackup="false"

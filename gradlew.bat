@@ -22,7 +22,7 @@
 @rem ##########################################################################
 
 @rem Set local scope for the variables with windows XP shell amendments
-if "%OS%"=="Windows_NT" setlocal
+if "%OS%"=="Windows_NT" setlocal EnableDelayedExpansion
 
 set DIRNAME=%~dp0
 if "%DIRNAME%" == "" set DIRNAME=.
@@ -30,7 +30,7 @@ set APP_BASE_NAME=%~n0
 set APP_HOME=%DIRNAME%
 
 @rem Resolve any "." and ".." in APP_HOME to make it shorter.
-for %%i in ("%APP_HOME%") do set APP_HOME=%%~f project
+for %%i in ("%APP_HOME%") do set APP_HOME=%%~fi
 
 @rem Find java.exe
 if defined JAVA_HOME goto findJavaFromJavaHome
@@ -66,10 +66,12 @@ set CLASSPATH=%APP_HOME%\gradle\wrapper\gradle-wrapper.jar
 
 if exist "%CLASSPATH%" (
     "%JAVA_EXE%" -XX:MaxMetaspaceSize=256m -XX:+HeapDumpOnOutOfMemoryError -Xmx1024m -Dfile.encoding=UTF-8 -classpath "%CLASSPATH%" org.gradle.wrapper.GradleWrapperMain %*
+    exit /b !ERRORLEVEL!
 ) else (
     where gradle >nul 2>nul
     if %ERRORLEVEL% equ 0 (
         gradle %*
+        exit /b !ERRORLEVEL!
     ) else (
         echo Error: Gradle wrapper JAR not found and system 'gradle' not available.
         exit /b 1

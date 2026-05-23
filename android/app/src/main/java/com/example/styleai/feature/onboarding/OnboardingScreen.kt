@@ -1,6 +1,7 @@
 package com.example.styleai.feature.onboarding
 
-import androidx.compose.animation.*
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -10,11 +11,15 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import com.example.styleai.core.localization.AppLocalization
 import com.example.styleai.domain.model.AppLanguage
 
@@ -25,42 +30,56 @@ import com.example.styleai.domain.model.AppLanguage
 fun SplashScreen(
     onSplashFinished: () -> Unit
 ) {
-    var animateLogo by remember { mutableStateOf(false) }
+    val contentAlpha = remember { Animatable(0f) }
+    val progress = remember { Animatable(0f) }
 
     LaunchedEffect(key1 = true) {
-        animateLogo = true
-        delay(1800) // Cinematic transition buffer
+        contentAlpha.animateTo(1f, animationSpec = tween(durationMillis = 900))
+    }
+
+    LaunchedEffect(key1 = true) {
+        progress.animateTo(1f, animationSpec = tween(durationMillis = 1800))
         onSplashFinished()
     }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
-        contentAlignment = Alignment.Center
+            .background(LuxuryBackground)
     ) {
         Column(
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier = Modifier
+                .align(Alignment.Center)
+                .graphicsLayer { alpha = contentAlpha.value },
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            AnimatedVisibility(
-                visible = animateLogo,
-                enter = fadeIn() + expandVertically()
-            ) {
-                Text(
-                    text = "StyleAI",
-                    style = MaterialTheme.typography.displayMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "StyleAI",
+                color = LuxuryPrimaryText,
+                fontFamily = FontFamily.Serif,
+                fontSize = 46.sp,
+                fontWeight = FontWeight.Medium,
+                letterSpacing = 1.4.sp
+            )
             Text(
                 text = "Your private AI style assistant",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
-                textAlign = TextAlign.Center
+                color = LuxurySecondaryText,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                letterSpacing = 2.1.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 32.dp)
             )
         }
+
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .fillMaxWidth(progress.value)
+                .height(1.dp)
+                .background(LuxuryPrimaryText)
+        )
     }
 }
 
@@ -299,3 +318,7 @@ data class OnboardingPageData(
     val title: String,
     val description: String
 )
+
+private val LuxuryBackground = Color(0xFFF5F5F7)
+private val LuxuryPrimaryText = Color(0xFF222222)
+private val LuxurySecondaryText = Color(0xFF737373)

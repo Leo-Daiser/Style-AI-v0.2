@@ -13,6 +13,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.Image
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import com.example.styleai.domain.model.HistoryItem
 import com.example.styleai.domain.model.SavedLook
 import com.example.styleai.domain.model.AppLanguage
@@ -214,11 +218,14 @@ fun SavedLookItemCard(
             modifier = Modifier.fillMaxWidth().padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Visual Swatch indicator on side
-            Box(
+            // Saved look image from drawable assets
+            Image(
+                painter = painterResource(id = getSavedLookDrawable(look.outfitId)),
+                contentDescription = look.title,
                 modifier = Modifier
                     .size(50.dp)
-                    .background(Color(android.graphics.Color.parseColor(look.imagePlaceholderHex)), shape = RoundedCornerShape(8.dp))
+                    .clip(RoundedCornerShape(8.dp)),
+                contentScale = ContentScale.Crop
             )
             Spacer(modifier = Modifier.width(14.dp))
             Column(modifier = Modifier.weight(1f)) {
@@ -229,5 +236,17 @@ fun SavedLookItemCard(
                 Text("✕", color = Color.Gray, fontSize = 16.sp, fontWeight = FontWeight.Bold)
             }
         }
+    }
+}
+
+private fun getSavedLookDrawable(outfitId: String): Int {
+    return when {
+        outfitId.contains("outfit_1") -> com.example.styleai.R.drawable.autumn_layered_look
+        outfitId.contains("outfit_2") -> com.example.styleai.R.drawable.date_night_classic
+        outfitId.contains("outfit_3") -> com.example.styleai.R.drawable.weekend_minimal_casual
+        outfitId.contains("outfit_4") -> com.example.styleai.R.drawable.travel_capsule_outfit
+        outfitId.contains("outfit_5") -> com.example.styleai.R.drawable.smart_casual_everyday
+        outfitId.contains("outfit_6") -> com.example.styleai.R.drawable.soft_office_capsule
+        else -> com.example.styleai.R.drawable.soft_office_capsule
     }
 }

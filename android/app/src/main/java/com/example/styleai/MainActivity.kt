@@ -3,29 +3,36 @@ package com.example.styleai
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.navArgument
 import androidx.navigation.compose.*
 import com.example.styleai.data.repository.BillingRepositoryImpl
+import com.example.styleai.data.repository.SavedDecisionDataStoreRepository
 import com.example.styleai.data.repository.StyleRepositoryImpl
+import com.example.styleai.data.repository.WardrobeDataStoreRepository
+import com.example.styleai.data.repository.WishlistDataStoreRepository
+import com.example.styleai.domain.decisions.SavedDecisionRepository
 import com.example.styleai.domain.model.AppLanguage
 import com.example.styleai.domain.model.StyleReport
 import com.example.styleai.domain.repository.BillingRepository
 import com.example.styleai.domain.repository.StyleRepository
-import com.example.styleai.feature.history.HistoryScreen
-import com.example.styleai.feature.history.HistoryViewModel
+import com.example.styleai.domain.wardrobe.WardrobeRepository
+import com.example.styleai.domain.wishlist.WishlistRepository
+import com.example.styleai.feature.decisions.DecisionsScreen
+import com.example.styleai.feature.decisions.DecisionsViewModel
 import com.example.styleai.feature.onboarding.*
 import com.example.styleai.feature.paywall.PaywallScreen
 import com.example.styleai.feature.paywall.PaywallViewModel
+import com.example.styleai.feature.profile.ProfileScreen
+import com.example.styleai.feature.profile.ProfileViewModel
 import com.example.styleai.feature.report.ReportScreen
-import com.example.styleai.feature.settings.SettingsScreen
-import com.example.styleai.feature.settings.SettingsViewModel
 import com.example.styleai.feature.upload.UploadScreen
 import com.example.styleai.feature.upload.UploadViewModel
 import com.example.styleai.feature.visualization.VisualizationScreen
@@ -33,7 +40,8 @@ import com.example.styleai.feature.visualization.VisualizationViewModel
 import com.example.styleai.feature.home.HomeScreen
 import com.example.styleai.feature.home.HomeViewModel
 import com.example.styleai.feature.home.ShoppingCheckScreen
-import com.example.styleai.core.localization.AppLocalization
+import com.example.styleai.feature.wardrobe.WardrobeScreen
+import com.example.styleai.feature.wardrobe.WardrobeViewModel
 import androidx.compose.ui.text.font.FontWeight
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -45,6 +53,9 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var styleRepository: StyleRepository
     private lateinit var billingRepository: BillingRepository
+    private lateinit var savedDecisionRepository: SavedDecisionRepository
+    private lateinit var wardrobeRepository: WardrobeRepository
+    private lateinit var wishlistRepository: WishlistRepository
 
     private lateinit var activeReportState: StateFlow<StyleReport?>
     private lateinit var selectedLanguageState: StateFlow<AppLanguage>
@@ -55,6 +66,9 @@ class MainActivity : ComponentActivity() {
         // Initialize our persistent standard repositories with App Context
         styleRepository = StyleRepositoryImpl(applicationContext)
         billingRepository = BillingRepositoryImpl(applicationContext)
+        savedDecisionRepository = SavedDecisionDataStoreRepository(applicationContext)
+        wardrobeRepository = WardrobeDataStoreRepository(applicationContext)
+        wishlistRepository = WishlistDataStoreRepository(applicationContext)
 
         // State flows from repositories compiled tightly under lifecycleScope
         activeReportState = styleRepository.getActiveReport().stateIn(
@@ -89,7 +103,7 @@ class MainActivity : ComponentActivity() {
                                                 popUpTo("splash") { inclusive = true }
                                             }
                                         } else {
-                                            navController.navigate("report") {
+                                            navController.navigate("main") {
                                                 popUpTo("splash") { inclusive = true }
                                             }
                                         }
@@ -116,7 +130,7 @@ class MainActivity : ComponentActivity() {
                         ConsentScreen(
                             viewModel = onboardingViewModel,
                             onConsentApproved = {
-                                navController.navigate("report") {
+                                navController.navigate("main") {
                                     popUpTo("consent") { inclusive = true }
                                 }
                             }
@@ -131,22 +145,37 @@ class MainActivity : ComponentActivity() {
                                 navController.navigate("report_detail") {
                                     popUpTo("upload") { inclusive = true }
                                 }
-                            }
+                            },
+                            onNavigateBack = { navController.popBackStack() }
                         )
                     }
 
-                    composable("report") {
+                    composable(
+                        route = "main?tab={tab}",
+                        arguments = listOf(navArgument("tab") { defaultValue = "home" })
+                    ) { backStackEntry ->
+                        val initialTab = when (backStackEntry.arguments?.getString("tab")) {
+                            "wardrobe" -> 1
+                            "decisions" -> 2
+                            "looks" -> 3
+                            "profile" -> 4
+                            else -> 0
+                        }
                         DashboardHostScreen(
                             styleRepository = styleRepository,
                             billingRepository = billingRepository,
+                            savedDecisionRepository = savedDecisionRepository,
+                            wardrobeRepository = wardrobeRepository,
+                            wishlistRepository = wishlistRepository,
                             activeReportState = activeReportState,
                             selectedLanguageState = selectedLanguageState,
+                            initialTab = initialTab,
                             onNavigateToPaywall = {
                                 navController.navigate("paywall")
                             },
                             onResetOnboarding = {
                                 navController.navigate("onboarding") {
-                                    popUpTo("report") { inclusive = true }
+                                    popUpTo("main") { inclusive = true }
                                 }
                             },
                             onNavigateToUpload = {
@@ -162,38 +191,27 @@ class MainActivity : ComponentActivity() {
                     }
 
                     composable("report_detail") {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(MaterialTheme.colorScheme.background)
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 8.dp, vertical = 4.dp),
-                                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
-                            ) {
-                                val currentLanguage by selectedLanguageState.collectAsState()
-                                TextButton(onClick = { navController.popBackStack() }) {
-                                    Text(
-                                        text = if (currentLanguage == AppLanguage.RU) "← Назад" else "← Back",
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                }
-                            }
-                            ReportScreen(
-                                reportState = activeReportState,
-                                selectedLanguage = selectedLanguageState,
-                                onToggleGapCompleted = { gapId -> }
-                            )
-                        }
+                        ReportScreen(
+                            reportState = activeReportState,
+                            selectedLanguage = selectedLanguageState,
+                            onToggleGapCompleted = { gapId -> },
+                            onNavigateBack = { navController.popBackStack() }
+                        )
                     }
 
                     composable("shopping_check") {
                         ShoppingCheckScreen(
                             currentLanguageState = selectedLanguageState,
+                            savedDecisionRepository = savedDecisionRepository,
+                            wardrobeRepository = wardrobeRepository,
+                            wishlistRepository = wishlistRepository,
                             onNavigateBack = {
                                 navController.popBackStack()
+                            },
+                            onViewDecisions = {
+                                navController.navigate("main?tab=decisions") {
+                                    popUpTo("shopping_check") { inclusive = true }
+                                }
                             }
                         )
                     }
@@ -217,52 +235,69 @@ class MainActivity : ComponentActivity() {
 fun DashboardHostScreen(
     styleRepository: StyleRepository,
     billingRepository: BillingRepository,
+    savedDecisionRepository: SavedDecisionRepository,
+    wardrobeRepository: WardrobeRepository,
+    wishlistRepository: WishlistRepository,
     activeReportState: StateFlow<StyleReport?>,
     selectedLanguageState: StateFlow<AppLanguage>,
+    initialTab: Int,
     onNavigateToPaywall: () -> Unit,
     onResetOnboarding: () -> Unit,
     onNavigateToUpload: () -> Unit,
     onNavigateToShoppingCheck: () -> Unit,
     onNavigateToReportDetail: () -> Unit
 ) {
-    var activeTab by remember { mutableStateOf(0) }
+    var activeTab by remember { mutableStateOf(initialTab) }
+    LaunchedEffect(initialTab) {
+        activeTab = initialTab
+    }
     val currentLanguage by selectedLanguageState.collectAsState()
-    val strings = AppLocalization.getStrings(currentLanguage)
-
+    val tabs = if (currentLanguage == AppLanguage.RU) {
+        listOf("Главная", "Гардероб", "Решения", "Образы", "Профиль")
+    } else {
+        listOf("Home", "Wardrobe", "Decisions", "Looks", "Profile")
+    }
     Scaffold(
+        containerColor = Color(0xFFF5F5F7),
         bottomBar = {
-            NavigationBar(
-                containerColor = MaterialTheme.colorScheme.surface,
-                tonalElevation = 8.dp
-            ) {
-                NavigationBarItem(
-                    selected = activeTab == 0,
-                    onClick = { activeTab = 0 },
-                    icon = { Text("🏠", fontSize = 20.sp) },
-                    label = { Text(if (currentLanguage == AppLanguage.EN) "Home" else "Главная", fontSize = 10.sp) }
-                )
-                NavigationBarItem(
-                    selected = activeTab == 1,
-                    onClick = { activeTab = 1 },
-                    icon = { Text("✨", fontSize = 20.sp) },
-                    label = { Text(if (currentLanguage == AppLanguage.EN) "Looks" else "Образы", fontSize = 10.sp) }
-                )
-                NavigationBarItem(
-                    selected = activeTab == 2,
-                    onClick = { activeTab = 2 },
-                    icon = { Text("📂", fontSize = 20.sp) },
-                    label = { Text(if (currentLanguage == AppLanguage.EN) "History" else "История", fontSize = 10.sp) }
-                )
-                NavigationBarItem(
-                    selected = activeTab == 3,
-                    onClick = { activeTab = 3 },
-                    icon = { Text("⚙️", fontSize = 20.sp) },
-                    label = { Text(if (currentLanguage == AppLanguage.EN) "Settings" else "Настройки", fontSize = 10.sp) }
-                )
+            Column {
+                Divider(color = Color(0xFFE5E5E5), thickness = 1.dp)
+                NavigationBar(
+                    containerColor = Color(0xFFF5F5F7),
+                    tonalElevation = 0.dp
+                ) {
+                    tabs.forEachIndexed { index, label ->
+                        val selected = activeTab == index
+                        NavigationBarItem(
+                            selected = selected,
+                            onClick = { activeTab = index },
+                            icon = {},
+                            label = {
+                                Text(
+                                    text = label,
+                                    color = if (selected) Color(0xFF222222) else Color(0xFF737373),
+                                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
+                                )
+                            },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = Color(0xFF222222),
+                                selectedTextColor = Color(0xFF222222),
+                                unselectedIconColor = Color(0xFF737373),
+                                unselectedTextColor = Color(0xFF737373),
+                                indicatorColor = Color.Transparent
+                            )
+                        )
+                    }
+                }
             }
         }
     ) { innerPadding ->
-        Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()
+                .background(Color(0xFFF5F5F7))
+        ) {
             when (activeTab) {
                 0 -> {
                     val homeViewModel = remember {
@@ -278,6 +313,22 @@ fun DashboardHostScreen(
                     )
                 }
                 1 -> {
+                    val wardrobeViewModel = remember { WardrobeViewModel(styleRepository, wardrobeRepository, wishlistRepository) }
+                    WardrobeScreen(
+                        viewModel = wardrobeViewModel,
+                        onCheckSimilarItem = onNavigateToShoppingCheck
+                    )
+                }
+                2 -> {
+                    val decisionsViewModel = remember {
+                        DecisionsViewModel(styleRepository, savedDecisionRepository, wardrobeRepository, wishlistRepository)
+                    }
+                    DecisionsScreen(
+                        viewModel = decisionsViewModel,
+                        onCheckItem = onNavigateToShoppingCheck
+                    )
+                }
+                3 -> {
                     val visualizationViewModel = remember {
                         VisualizationViewModel(styleRepository, billingRepository)
                     }
@@ -286,21 +337,11 @@ fun DashboardHostScreen(
                         onNavigateToPaywall = onNavigateToPaywall
                     )
                 }
-                2 -> {
-                    val historyViewModel = remember {
-                        HistoryViewModel(styleRepository)
-                    }
-                    HistoryScreen(
-                        viewModel = historyViewModel,
-                        onNavigateBackToReport = { activeTab = 0 }
-                    )
-                }
-                3 -> {
-                    val settingsViewModel = remember {
-                        SettingsViewModel(styleRepository)
-                    }
-                    SettingsScreen(
-                        viewModel = settingsViewModel,
+                4 -> {
+                    val profileViewModel = remember { ProfileViewModel(styleRepository) }
+                    ProfileScreen(
+                        viewModel = profileViewModel,
+                        onNavigateToUpload = onNavigateToUpload,
                         onNavigateBackToOnboarding = onResetOnboarding
                     )
                 }

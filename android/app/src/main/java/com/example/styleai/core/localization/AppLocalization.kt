@@ -170,7 +170,7 @@ object AppStringsEn : AppStrings {
     override val visFormalityLabel = "Formality"
     override val visColorDirectionLabel = "Color direction"
     override val visSafetyWarning = "Visualizations are style references, not exact clothing fit simulations. Unsafe or non-consensual image use is not allowed."
-    override val visIntroButton = "Render Outfit (1 Credit)"
+    override val visIntroButton = "Create visual reference (1 Credit)"
 
     override val paywallTitle = "Unlock StyleAI Premium"
     override val paywallSubtitle = "Unlock full seasonal guides and custom styling boards"
@@ -179,11 +179,11 @@ object AppStringsEn : AppStrings {
     override val paywallSubPlan = "Pro Monthly Subscription ($9.99/mo)"
     override val paywallCreditsPack = "Buy 10 Outfit Credits ($4.99)"
 
-    override val historyTitle = "Local History Log"
-    override val historySubtitle = "Manage device caches and saved items logs"
-    override val historyEmptyState = "No generated style indices stored. Upload photos to generate colors."
-    override val historyActiveReports = "Active Reports Collection"
-    override val historySavedLooks = "Saved Looks list"
+    override val historyTitle = "Decisions"
+    override val historySubtitle = "Your saved shopping decisions and outfit ideas"
+    override val historyEmptyState = "No saved shopping decisions yet."
+    override val historyActiveReports = "Style Profiles"
+    override val historySavedLooks = "Saved Looks"
 
     override val settingsTitle = "App Settings"
     override val settingsSubtitle = "Fine-tune privacy thresholds, data exports, and cache minimizations."
@@ -286,7 +286,7 @@ object AppStringsRu : AppStrings {
     override val visFormalityLabel = "Формальность"
     override val visColorDirectionLabel = "Направление цвета"
     override val visSafetyWarning = "Визуализации показывают стилевое направление, а не точную посадку одежды. Небезопасное использование изображений и обработка фото без согласия запрещены."
-    override val visIntroButton = "Сгенерировать образ (1 Кредит)"
+    override val visIntroButton = "Создать визуализацию (1 Кредит)"
 
     override val paywallTitle = "Разблокировать StyleAI Premium"
     override val paywallSubtitle = "Разблокируйте полные сезонные гиды и интерактивные подборы"
@@ -295,10 +295,10 @@ object AppStringsRu : AppStrings {
     override val paywallSubPlan = "Ежемесячная подписка Pro ($9.99/мес)"
     override val paywallCreditsPack = "Купить 10 кредитов образов ($4.99)"
 
-    override val historyTitle = "Локальная история"
-    override val historySubtitle = "Управление кешем устройства и сохраненными образами"
-    override val historyEmptyState = "Сохраненные отчеты отсутствуют. Загрузите фото для генерации."
-    override val historyActiveReports = "Коллекция активных отчетов"
+    override val historyTitle = "Решения"
+    override val historySubtitle = "Ваши сохраненные решения о покупках и идеи образов"
+    override val historyEmptyState = "Сохраненные решения отсутствуют."
+    override val historyActiveReports = "Профили стиля"
     override val historySavedLooks = "Сохраненные образы"
 
     override val settingsTitle = "Настройки приложения"
