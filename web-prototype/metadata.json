@@ -1,0 +1,6 @@
+{
+  "name": "StyleAI Personal Style Assistant",
+  "description": "A privacy-first personal style assistant MVP written in Jetpack Compose, Material 3, and Kotlin following clean architecture pattern, with an interactive web simulator preview.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
